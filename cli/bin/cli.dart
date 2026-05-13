@@ -1,24 +1,13 @@
 import 'dart:io';
 import 'package:http/http.dart' as http;
+import 'package:command_runner/command_runner.dart';
 
 const version = '0.0.1';
 
-void main(List<String> arguments) {
-  if (arguments.isEmpty || arguments.first == 'help') {
-    printUsage();
-  }
-  // jos ensimmäinen argumentti listassa on version, silloin tulostetaan ...
-  // dart run .\bin\cli.dart version
-  else if (arguments.first == 'version') {
-    print('Current version is: $version');
-  } else if (arguments.first == 'wikipedia') {
-    // jos listan (item) määrä on suurempi kuin 1, silloin tehdään sublist
-    // muuten asetetaan null inputArgs:in
-    final inputArgs = arguments.length > 1 ? arguments.sublist(1) : null;
-    searchWikipedia(inputArgs); // ei tarvita tässä await:ia
-  } else {
-    printUsage();
-  }
+// main is now async and awaits the runner
+void main(List<String> arguments) async {
+  var runner = CommandRunner(); // Create an instance of your new CommandRunner
+  await runner.run(arguments); // Call its run method, awaiting its Future<void>
 }
 
 // ? - tietotyyppi on joko lista tai null
