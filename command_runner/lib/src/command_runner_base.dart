@@ -6,13 +6,19 @@ import 'exceptions.dart'; // Tuodaan oma ArgumentException-luokka käyttöön
 
 class CommandRunner {
   // Lisätty konstruktori, joka ottaa vastaan vapaaehtoisen virheenkäsittelyfunktion
-  CommandRunner({this.onError});
+  // sekä vapaaehtoisen tulostuksen käsittelyfunktion
+  CommandRunner({this.onError, this.onOutput});
   // Tallentaa komennot Map-rakenteeseen: komennon nimi -> Command-olio
   final Map<String, Command> _commands = <String, Command>{};
 
   // Palauttaa komennot niin, ettei niitä voi muokata luokan ulkopuolelta
   UnmodifiableSetView<Command> get commands =>
       UnmodifiableSetView<Command>(<Command>{..._commands.values});
+
+  // Lisätty onOutput-property
+  // Tämän avulla pääsovellus voi päättää, miten tuloste käsitellään
+  // Esim. tuloste voidaan värittää, viivästyttää tai ohjata muualle
+  FutureOr<void> Function(String)? onOutput;
 
   // Lisätty onError-property
   // Tämän avulla voidaan määrittää, miten virheet käsitellään sovelluksessa
@@ -27,7 +33,13 @@ class CommandRunner {
       // Jos komento löytyy, suoritetaan sen run-metodi
       if (results.command != null) {
         Object? output = await results.command!.run(results);
-        print(output.toString()); // Tulostetaan komennon palauttama tulos
+
+        // Jos onOutput on määritelty, käytetään sitä tulostuksen käsittelyyn
+        if (onOutput != null) {
+          await onOutput!(output.toString());
+        } else {
+          print(output.toString()); // Tulostetaan komennon palauttama tulos
+        }
       }
     } on Exception catch (exception) {
       // Jos onError on määritelty, käytetään sitä virheen käsittelyyn
